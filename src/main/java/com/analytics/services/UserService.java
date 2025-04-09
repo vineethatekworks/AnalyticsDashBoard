@@ -15,29 +15,24 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    // Login: Fetch user by email
     public User login(String email) {
         Optional<User> optionalUser = userRepository.findByEmail(email);
-
-        if (optionalUser.isEmpty()) {
-            throw new RuntimeException("User not found");
-        }
-
-        return optionalUser.get();
+        return optionalUser.orElse(null); // return null if user not found
     }
 
-    // Update profile by ID
-    public User updateProfile(String userId, String name, String bio) {
-        Optional<User> optionalUser = userRepository.findById(UUID.fromString(userId));
 
-        if (optionalUser.isEmpty()) {
-            throw new RuntimeException("User not found");
+    public User updateProfile(UUID userId,String name,String bio) {
+        Optional<User> optionalUser = userRepository.findById(userId);
+
+        if (optionalUser.isPresent()) {
+            User existingUser = optionalUser.get();
+            existingUser.setName(name);
+            existingUser.setBio(bio);
+
+            return userRepository.save(existingUser);
         }
 
-        User user = optionalUser.get();
-        user.setFullName(name);
-        user.setBio(bio);
-
-        return userRepository.save(user); // save and return updated user
+        return null; 
     }
+    
 }

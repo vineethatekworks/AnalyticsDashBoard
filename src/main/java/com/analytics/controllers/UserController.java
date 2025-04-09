@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -16,17 +17,27 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/login")
-	public ResponseEntity<User> loginUser(@RequestParam String email) {
-		User loggedInUser =userService.login(email) ;
-        return ResponseEntity.ok(loggedInUser);
-    }
+    public ResponseEntity<?> loginUser(@RequestParam String email) {
+        User loggedInUser = userService.login(email);
+        if (loggedInUser == null) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("User not found");
+        }
+        return ResponseEntity.ok().body("Login successfull");    
+        }
 
-    @PutMapping("/{id}/profile")
-    public ResponseEntity<User> updateProfile(@PathVariable("id") String userId,
+    @PutMapping("/profile/{id}")
+    public ResponseEntity<String> updateProfile(@PathVariable("id") UUID userId,
                                               @RequestBody Map<String, String> body) {
         String name = body.get("name");
         String bio = body.get("bio");
-        User updated = userService.updateProfile(userId, name, bio);
-        return ResponseEntity.ok(updated);
-    }
-}
+        User result = userService.updateProfile(userId, name, bio);
+        if (result == null) {
+            return ResponseEntity
+                    .badRequest()
+                    .body("User not found or update failed");
+        }
+        return ResponseEntity.ok().body("updated successfully");   
+      }
+   }
